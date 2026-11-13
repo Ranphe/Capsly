@@ -17,6 +17,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.viewpager2.widget.ViewPager2;
+import androidx.appcompat.app.AppCompatDelegate;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.ranphe.capsly.data.local.DatabaseHelper;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         super.onCreate(savedInstanceState);
         initializeControllers();
         initializeDatabase();
@@ -104,7 +106,9 @@ public class MainActivity extends AppCompatActivity {
         View screen = content.getChildAt(0);
         ViewCompat.setOnApplyWindowInsetsListener(screen, (view, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            view.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            Insets keyboard = insets.getInsets(WindowInsetsCompat.Type.ime());
+            int bottomPadding = Math.max(systemBars.bottom, keyboard.bottom);
+            view.setPadding(systemBars.left, systemBars.top, systemBars.right, bottomPadding);
             return insets;
         });
         ViewCompat.requestApplyInsets(screen);
