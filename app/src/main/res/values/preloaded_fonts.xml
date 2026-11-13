@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/abril_fatface</item>
+        <item>@font/besley_extrabold</item>
+        <item>@font/bodoni_moda_extrabold</item>
+        <item>@font/lora_bold</item>
+        <item>@font/merriweather_bold</item>
+        <item>@font/playfair_display</item>
+        <item>@font/playfair_display_extrabold</item>
+    </array>
+</resources>

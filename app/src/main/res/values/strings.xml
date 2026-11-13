@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Capsly</string>
+    <string name="countdown_value">%1$d\n%2$s</string>
+</resources>

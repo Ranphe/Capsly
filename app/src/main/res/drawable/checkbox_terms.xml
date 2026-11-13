@@ -1,0 +1,36 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_checked="true">
+        <layer-list>
+
+            <item>
+                <shape android:shape="rectangle">
+                    <size
+                        android:width="22dp"
+                        android:height="22dp" />
+                    <solid android:color="#5D877E" />
+                    <corners android:radius="3dp" />
+                </shape>
+            </item>
+
+            <item
+                android:drawable="@drawable/ic_terms_check"
+                android:gravity="center" />
+
+        </layer-list>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <size
+                android:width="22dp"
+                android:height="22dp" />
+            <solid android:color="@android:color/transparent" />
+            <stroke
+                android:width="2dp"
+                android:color="#5D877E" />
+            <corners android:radius="3dp" />
+        </shape>
+    </item>
+
+</selector>
