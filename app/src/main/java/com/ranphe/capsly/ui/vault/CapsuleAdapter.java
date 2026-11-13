@@ -42,31 +42,37 @@ public final class CapsuleAdapter extends RecyclerView.Adapter<CapsuleAdapter.Ca
     @Override
     public void onBindViewHolder(@NonNull CapsuleHolder holder, int position) {
         Capsule capsule = capsules.get(position);
+        CapsuleAppearance.Status status = CapsuleAppearance.getStatus(capsule);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", new Locale("es", "MX"));
         holder.date.setText(dateFormat.format(new Date(capsule.getOpeningDate())));
-        holder.image.setImageResource(CapsuleAppearance.getImageResource(capsule.getOpeningDate()));
-        long remainingMilliseconds = capsule.getOpeningDate() - System.currentTimeMillis();
-        if (remainingMilliseconds <= 0) {
-            holder.title.setText("Cápsula disponible");
-        } else if (remainingMilliseconds <= 7L * DAY_MILLISECONDS) {
-            holder.title.setText("¡Muy pronto!");
-        } else {
-            holder.title.setText("Cápsula bloqueada");
-        }
-        if (remainingMilliseconds > 0) {
-            long remainingDays = Math.max(1, (remainingMilliseconds + DAY_MILLISECONDS - 1) / DAY_MILLISECONDS);
-            holder.days.setText(remainingDays == 1 ? "Falta 1 día" : "Faltan " + remainingDays + " días");
-            if (remainingDays <= 7) {
+        holder.image.setImageResource(CapsuleAppearance.getImageResource(capsule));
+        long remainingMilliseconds = Math.max(0, capsule.getOpeningDate() - System.currentTimeMillis());
+        long remainingDays = Math.max(1, (remainingMilliseconds + DAY_MILLISECONDS - 1) / DAY_MILLISECONDS);
+        switch (status) {
+            case OPENED:
+                holder.title.setText(capsule.getTitle() == null ? "Cápsula abierta" : capsule.getTitle());
+                holder.days.setText("Recuerdo abierto");
+                holder.status.setText("Abierta");
+                holder.statusBackground.setCardBackgroundColor(Color.parseColor("#D9EBD5"));
+                break;
+            case UNLOCKED:
+                holder.title.setText("Cápsula disponible");
+                holder.days.setText("Lista para abrir");
+                holder.status.setText("Desbloqueada");
+                holder.statusBackground.setCardBackgroundColor(Color.parseColor("#E0EBCB"));
+                break;
+            case UPCOMING:
+                holder.title.setText("¡Muy pronto!");
+                holder.days.setText(remainingDays == 1 ? "Falta 1 día" : "Faltan " + remainingDays + " días");
                 holder.status.setText("Próxima");
                 holder.statusBackground.setCardBackgroundColor(Color.parseColor("#D1EBF6"));
-            } else {
+                break;
+            case LOCKED:
+                holder.title.setText("Cápsula bloqueada");
+                holder.days.setText(remainingDays == 1 ? "Falta 1 día" : "Faltan " + remainingDays + " días");
                 holder.status.setText("Bloqueada");
                 holder.statusBackground.setCardBackgroundColor(Color.parseColor("#E6E8E5"));
-            }
-        } else {
-            holder.days.setText("Lista para abrir");
-            holder.status.setText("Abierta");
-            holder.statusBackground.setCardBackgroundColor(Color.parseColor("#D9EBD5"));
+                break;
         }
         holder.itemView.setOnClickListener(view -> {
             int currentPosition = holder.getBindingAdapterPosition();

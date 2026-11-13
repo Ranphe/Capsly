@@ -85,6 +85,7 @@ public final class UnlockedCapsuleActivity extends AppCompatActivity {
                     } catch (IOException ignored) {
                     }
                 }
+                if (loadedCapsule != null && loadedCapsule.getOpeningDate() <= System.currentTimeMillis()) repository.markCapsuleOpened(capsuleId, recipientEmail);
             } catch (RuntimeException exception) {
                 loadedCapsule = null;
             }

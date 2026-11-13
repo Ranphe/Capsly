@@ -56,6 +56,13 @@
                 android:text="Abiertas (0)" />
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/filtroDesbloqueadas"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Desbloqueadas (0)" />
+
+            <com.google.android.material.chip.Chip
                 android:id="@+id/filtroProximas"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"

@@ -23,15 +23,13 @@ import java.util.List;
 import java.util.Locale;
 
 public final class HomeDashboardScreen {
-    private static final long DAY_MILLISECONDS = 86400000L;
-    private static final long UPCOMING_WINDOW_MILLISECONDS = 7L * DAY_MILLISECONDS;
     private final Activity activity;
     private final String recipientEmail;
     private final CapsuleRepository repository;
     private final TextView capsuleCount;
     private final MaterialCardView emptyCard;
     private final TextView emptyMessage;
-    private final LinearLayout upcomingContainer;
+    private final LinearLayout unlockedContainer;
     private boolean disposed = false;
 
     @SuppressLint("SetTextI18n")
@@ -47,11 +45,11 @@ public final class HomeDashboardScreen {
         capsuleCount = root.findViewById(R.id.tvCantidadCapsulas);
         emptyCard = root.findViewById(R.id.cardSinCapsulas);
         emptyMessage = (TextView) emptyCard.getChildAt(0);
-        upcomingContainer = root.findViewById(R.id.contenedorProximasCapsulas);
+        unlockedContainer = root.findViewById(R.id.contenedorProximasCapsulas);
         capsuleCount.setText("Cargando cápsulas...");
-        emptyMessage.setText("Buscando próximas aperturas...");
+        emptyMessage.setText("Buscando cápsulas desbloqueadas...");
         emptyCard.setVisibility(View.VISIBLE);
-        upcomingContainer.setVisibility(View.GONE);
+        unlockedContainer.setVisibility(View.GONE);
         loadCapsules();
     }
 
@@ -64,19 +62,17 @@ public final class HomeDashboardScreen {
             } catch (RuntimeException exception) {
                 activity.runOnUiThread(() -> {
                     if (cannotUpdate()) return;
-
                     capsuleCount.setText("No se pudieron cargar las cápsulas");
-                    emptyMessage.setText("No se pudieron consultar las próximas aperturas.");
-
+                    emptyMessage.setText("No se pudieron consultar las cápsulas desbloqueadas.");
                     emptyCard.setVisibility(View.VISIBLE);
-                    upcomingContainer.setVisibility(View.GONE);
+                    unlockedContainer.setVisibility(View.GONE);
                 });
                 return;
             }
             activity.runOnUiThread(() -> {
                 if (cannotUpdate()) return;
                 showCapsuleCount(capsules.size());
-                showUpcomingCapsules(capsules);
+                showUnlockedCapsules(capsules);
             });
         }).start();
     }
@@ -88,48 +84,44 @@ public final class HomeDashboardScreen {
     }
 
     @SuppressLint("SetTextI18n")
-    private void showUpcomingCapsules(List<Capsule> capsules) {
-        long now = System.currentTimeMillis();
-        List<Capsule> upcomingCapsules = new ArrayList<>();
+    private void showUnlockedCapsules(List<Capsule> capsules) {
+        List<Capsule> unlockedCapsules = new ArrayList<>();
         for (Capsule capsule : capsules) {
-            long remainingTime = capsule.getOpeningDate() - now;
-            if (remainingTime > 0 && remainingTime <= UPCOMING_WINDOW_MILLISECONDS) upcomingCapsules.add(capsule);
+            if (CapsuleAppearance.getStatus(capsule) == CapsuleAppearance.Status.UNLOCKED) unlockedCapsules.add(capsule);
         }
-        upcomingCapsules.sort(Comparator.comparingLong(Capsule::getOpeningDate));
-        upcomingContainer.removeAllViews();
-        if (upcomingCapsules.isEmpty()) {
-            emptyMessage.setText("No tienes cápsulas próximas en los siguientes 7 días.");
+        unlockedCapsules.sort(Comparator.comparingLong(Capsule::getOpeningDate).reversed());
+        unlockedContainer.removeAllViews();
+        if (unlockedCapsules.isEmpty()) {
+            emptyMessage.setText("No tienes cápsulas desbloqueadas por abrir.");
             emptyCard.setVisibility(View.VISIBLE);
-            upcomingContainer.setVisibility(View.GONE);
+            unlockedContainer.setVisibility(View.GONE);
             return;
         }
-        for (Capsule capsule : upcomingCapsules) {
-            addUpcomingCard(capsule);
+        for (Capsule capsule : unlockedCapsules) {
+            addUnlockedCard(capsule);
         }
         emptyCard.setVisibility(View.GONE);
-        upcomingContainer.setVisibility(View.VISIBLE);
+        unlockedContainer.setVisibility(View.VISIBLE);
     }
 
     @SuppressLint("SetTextI18n")
-    private void addUpcomingCard(Capsule capsule) {
-        MaterialCardView card = (MaterialCardView) LayoutInflater.from(activity).inflate(R.layout.item_capsule, upcomingContainer, false);
+    private void addUnlockedCard(Capsule capsule) {
+        MaterialCardView card = (MaterialCardView) LayoutInflater.from(activity).inflate(R.layout.item_capsule, unlockedContainer, false);
         ImageView image = card.findViewById(R.id.imgPastillaBoveda);
         TextView title = card.findViewById(R.id.tvNombreCapsula);
         TextView date = card.findViewById(R.id.tvFechaCapsula);
         TextView days = card.findViewById(R.id.tvDiasCapsula);
         TextView status = card.findViewById(R.id.tvEstadoCapsula);
         MaterialCardView statusBackground = card.findViewById(R.id.fondoEstadoCapsula);
-        image.setImageResource(CapsuleAppearance.getImageResource(capsule.getOpeningDate()));
-        title.setText("¡Muy pronto!");
+        image.setImageResource(CapsuleAppearance.getImageResource(capsule));
+        title.setText("Cápsula disponible");
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", new Locale("es", "MX"));
         date.setText(dateFormat.format(new Date(capsule.getOpeningDate())));
-        long remainingMilliseconds = Math.max(0, capsule.getOpeningDate() - System.currentTimeMillis());
-        long remainingDays = Math.max(1, (remainingMilliseconds + DAY_MILLISECONDS - 1) / DAY_MILLISECONDS);
-        days.setText(remainingDays == 1 ? "Falta 1 día" : "Faltan " + remainingDays + " días");
-        status.setText("Próxima");
-        statusBackground.setCardBackgroundColor(Color.parseColor("#D1EBF6"));
+        days.setText("Lista para abrir");
+        status.setText("Desbloqueada");
+        statusBackground.setCardBackgroundColor(Color.parseColor("#E0EBCB"));
         card.setOnClickListener(view -> openCapsule(capsule));
-        upcomingContainer.addView(card);
+        unlockedContainer.addView(card);
     }
 
     private void openCapsule(Capsule capsule) {

@@ -190,11 +190,11 @@ public class MainActivity extends AppCompatActivity {
     private void openVaultIfRequested() {
         Intent intent = getIntent();
         if (intent == null || !intent.getBooleanExtra(EXTRA_OPEN_VAULT, false)) return;
+        intent.removeExtra(EXTRA_OPEN_VAULT);
+        if (!userSession.isSignedIn()) return;
+        showHome(userSession.getName());
         ViewPager2 pager = findViewById(R.id.pagerPrincipal);
-        if (pager != null) {
-            pager.setCurrentItem(1, false);
-            intent.removeExtra(EXTRA_OPEN_VAULT);
-        }
+        if (pager != null) pager.setCurrentItem(1, false);
     }
 
     @Override

@@ -111,7 +111,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="@font/lora_bold"
-            android:text="Próximas aperturas"
+            android:text="Cápsulas desbloqueadas"
             android:textColor="#252F27"
             android:textSize="18sp" />
 
@@ -164,7 +164,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="16dp"
-                    android:text="Aún no hay próximas aperturas."
+                    android:text="Aún no tienes cápsulas desbloqueadas."
                     android:textColor="#46534A"
                     android:textSize="14sp" />
 

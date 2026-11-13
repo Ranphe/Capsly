@@ -16,7 +16,7 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "capsly.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 1;
     public static final String TABLE_USERS = "usuarios";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_NAME = "nombre";
@@ -32,6 +32,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_FILE_PATH = "ruta_archivo";
     public static final String COLUMN_OPEN_DATE = "fecha_apertura";
     public static final String COLUMN_CREATED_AT = "fecha_creacion";
+    public static final String COLUMN_OPENED_AT = "fecha_primera_apertura";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -66,6 +67,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_FILE_PATH + " TEXT NOT NULL, " +
                 COLUMN_OPEN_DATE + " INTEGER NOT NULL, " +
                 COLUMN_CREATED_AT + " INTEGER NOT NULL, " +
+                COLUMN_OPENED_AT + " INTEGER, " +
                 "FOREIGN KEY(" + COLUMN_SENDER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + ") ON DELETE RESTRICT, " +
                 "FOREIGN KEY(" + COLUMN_RECIPIENT_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_ID + ") ON DELETE RESTRICT)";
         database.execSQL(sql);
@@ -74,8 +76,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
-        if (oldVersion < 2) createCapsulesTable(database);
-        if (newVersion > 2) throw new IllegalStateException("Database migration is not implemented");
+        throw new IllegalStateException("Database migration is not implemented");
     }
 
     public boolean registerUser(String name, String email, String password) throws GeneralSecurityException {
@@ -149,12 +150,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase database = getReadableDatabase();
         long recipientId = findUserIdByEmail(database, recipientEmail);
         if (recipientId == -1) return capsules;
-        try (Cursor cursor = database.query(TABLE_CAPSULES, new String[]{COLUMN_ID, COLUMN_TITLE, COLUMN_FORMAT, COLUMN_OPEN_DATE}, COLUMN_RECIPIENT_ID + " = ?", new String[]{String.valueOf(recipientId)}, null, null, COLUMN_OPEN_DATE + " ASC")) {
+        try (Cursor cursor = database.query(TABLE_CAPSULES, new String[]{COLUMN_ID, COLUMN_TITLE, COLUMN_FORMAT, COLUMN_OPEN_DATE, COLUMN_OPENED_AT}, COLUMN_RECIPIENT_ID + " = ?", new String[]{String.valueOf(recipientId)}, null, null, COLUMN_OPEN_DATE + " ASC")) {
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID));
                 String format = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FORMAT));
                 long openingDate = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_OPEN_DATE));
-                capsules.add(new Capsule(id, format, openingDate));
+                boolean opened = !cursor.isNull(cursor.getColumnIndexOrThrow(COLUMN_OPENED_AT));
+                String title = opened ? cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE)) : null;
+                capsules.add(new Capsule(id, title, format, openingDate, opened));
             }
         }
         return capsules;
@@ -166,12 +169,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (recipientId == -1) return null;
         String selection = COLUMN_ID + " = ? AND " + COLUMN_RECIPIENT_ID + " = ?";
         String[] selectionArgs = {String.valueOf(capsuleId), String.valueOf(recipientId)};
-        try (Cursor cursor = database.query(TABLE_CAPSULES, new String[]{COLUMN_ID, COLUMN_TITLE, COLUMN_FORMAT, COLUMN_OPEN_DATE}, selection, selectionArgs, null, null, null)) {
+        try (Cursor cursor = database.query(TABLE_CAPSULES, new String[]{COLUMN_ID, COLUMN_TITLE, COLUMN_FORMAT, COLUMN_OPEN_DATE, COLUMN_OPENED_AT}, selection, selectionArgs, null, null, null)) {
             if (!cursor.moveToFirst()) return null;
             long id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID));
             String format = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FORMAT));
             long openingDate = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_OPEN_DATE));
-            return new Capsule(id, format, openingDate);
+            boolean opened = !cursor.isNull(cursor.getColumnIndexOrThrow(COLUMN_OPENED_AT));
+            String title = opened ? cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE)) : null;
+            return new Capsule(id, title, format, openingDate, opened);
         }
     }
 
@@ -210,6 +215,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             long openingDate = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_OPEN_DATE));
             long createdAt = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_CREATED_AT));
             return new UnlockedCapsule(id, title, message, format, filePath, openingDate, createdAt);
+        }
+    }
+
+    public boolean markCapsuleOpened(long capsuleId, String recipientEmail) {
+        if (recipientEmail == null || recipientEmail.trim().isEmpty()) return false;
+        try (SQLiteDatabase database = getWritableDatabase()) {
+            long recipientId = findUserIdByEmail(database, recipientEmail);
+            if (recipientId == -1L) return false;
+            long now = System.currentTimeMillis();
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_OPENED_AT, now);
+            String selection = COLUMN_ID + " = ? AND " +
+                    COLUMN_RECIPIENT_ID + " = ? AND " +
+                    COLUMN_OPEN_DATE + " <= ? AND " +
+                    COLUMN_OPENED_AT + " IS NULL";
+            String[] arguments = {
+                    String.valueOf(capsuleId),
+                    String.valueOf(recipientId),
+                    String.valueOf(now)
+            };
+            return database.update(TABLE_CAPSULES, values, selection, arguments) == 1;
         }
     }
 }

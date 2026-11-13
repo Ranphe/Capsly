@@ -69,4 +69,10 @@ public final class CapsuleRepository {
             return database.getUnlockedCapsule(capsuleId, recipientEmail);
         }
     }
+
+    public void markCapsuleOpened(long capsuleId, String recipientEmail) {
+        try (DatabaseHelper database = new DatabaseHelper(context)) {
+            database.markCapsuleOpened(capsuleId, recipientEmail);
+        }
+    }
 }

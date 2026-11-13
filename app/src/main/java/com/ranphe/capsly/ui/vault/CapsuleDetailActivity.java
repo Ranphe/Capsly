@@ -101,6 +101,10 @@ public final class CapsuleDetailActivity extends AppCompatActivity {
                 }
                 capsule = result;
                 createdAt = creationResult;
+                if (CapsuleAppearance.getStatus(capsule) == CapsuleAppearance.Status.OPENED) {
+                    openUnlockedCapsule();
+                    return;
+                }
                 renderDetail();
                 scheduleCountdown();
             });
@@ -151,21 +155,7 @@ public final class CapsuleDetailActivity extends AppCompatActivity {
             backButtonId = R.id.btnRegresarMuyPronto;
         } else {
             backButtonId = R.id.btnRegresarAbierta;
-            findViewById(R.id.btnVerCapsulaAbierta).setOnClickListener(view -> {
-                if (capsule == null || capsule.getOpeningDate() > System.currentTimeMillis()) {
-                    renderDetail();
-                    return;
-                }
-                String recipientEmail = getIntent().getStringExtra(EXTRA_RECIPIENT_EMAIL);
-                if (recipientEmail == null || recipientEmail.trim().isEmpty()) {
-                    Toast.makeText(this, "No se pudo identificar al destinatario", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                Intent intent = new Intent(this, UnlockedCapsuleActivity.class);
-                intent.putExtra(UnlockedCapsuleActivity.EXTRA_CAPSULE_ID, capsule.getId());
-                intent.putExtra(UnlockedCapsuleActivity.EXTRA_RECIPIENT_EMAIL, recipientEmail);
-                startActivity(intent);
-            });
+            findViewById(R.id.btnVerCapsulaAbierta).setOnClickListener(view -> openUnlockedCapsule());
         }
         findViewById(backButtonId).setOnClickListener(view -> finish());
     }
@@ -206,6 +196,23 @@ public final class CapsuleDetailActivity extends AppCompatActivity {
     private void scheduleCountdown() {
         handler.removeCallbacks(countdownUpdater);
         if (isResumed && capsule != null) handler.postDelayed(countdownUpdater, REFRESH_INTERVAL);
+    }
+
+    private void openUnlockedCapsule() {
+        if (capsule == null || capsule.getOpeningDate() > System.currentTimeMillis()) {
+            renderDetail();
+            return;
+        }
+        String recipientEmail = getIntent().getStringExtra(EXTRA_RECIPIENT_EMAIL);
+        if (recipientEmail == null || recipientEmail.trim().isEmpty()) {
+            Toast.makeText(this, "No se pudo identificar al destinatario", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent intent = new Intent(this, UnlockedCapsuleActivity.class);
+        intent.putExtra(UnlockedCapsuleActivity.EXTRA_CAPSULE_ID, capsule.getId());
+        intent.putExtra(UnlockedCapsuleActivity.EXTRA_RECIPIENT_EMAIL, recipientEmail);
+        startActivity(intent);
+        finish();
     }
 
     @Override

@@ -15,11 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class VaultScreen {
-    private static final long DAY_MILLISECONDS = 86400000L;
-    private static final long UPCOMING_WINDOW_MILLISECONDS = 7L * DAY_MILLISECONDS;
     private enum Filter {
         ALL,
         OPEN,
+        UNLOCKED,
         UPCOMING,
         LOCKED
     }
@@ -31,6 +30,7 @@ public final class VaultScreen {
     private final TextView emptyMessage;
     private final Chip allChip;
     private final Chip openChip;
+    private final Chip unlockedChip;
     private final Chip upcomingChip;
     private final Chip lockedChip;
     private final CapsuleAdapter adapter;
@@ -48,6 +48,7 @@ public final class VaultScreen {
         emptyMessage = root.findViewById(R.id.tvBovedaVacia);
         allChip = root.findViewById(R.id.filtroTodas);
         openChip = root.findViewById(R.id.filtroAbiertas);
+        unlockedChip = root.findViewById(R.id.filtroDesbloqueadas);
         upcomingChip = root.findViewById(R.id.filtroProximas);
         lockedChip = root.findViewById(R.id.filtroBloqueadas);
         adapter = new CapsuleAdapter(this::onCapsuleSelected);
@@ -55,6 +56,7 @@ public final class VaultScreen {
         capsuleList.setAdapter(adapter);
         allChip.setOnClickListener(view -> selectFilter(Filter.ALL));
         openChip.setOnClickListener(view -> selectFilter(Filter.OPEN));
+        unlockedChip.setOnClickListener(view -> selectFilter(Filter.UNLOCKED));
         upcomingChip.setOnClickListener(view -> selectFilter(Filter.UPCOMING));
         lockedChip.setOnClickListener(view -> selectFilter(Filter.LOCKED));
         emptyMessage.setText("Cargando cápsulas...");
@@ -89,11 +91,17 @@ public final class VaultScreen {
         render();
     }
 
-    private Filter getCapsuleStatus(Capsule capsule, long now) {
-        long remainingTime = capsule.getOpeningDate() - now;
-        if (remainingTime <= 0) return Filter.OPEN;
-        if (remainingTime <= UPCOMING_WINDOW_MILLISECONDS) return Filter.UPCOMING;
-        return Filter.LOCKED;
+    private Filter getCapsuleStatus(Capsule capsule) {
+        switch (CapsuleAppearance.getStatus(capsule)) {
+            case OPENED:
+                return Filter.OPEN;
+            case UNLOCKED:
+                return Filter.UNLOCKED;
+            case UPCOMING:
+                return Filter.UPCOMING;
+            default:
+                return Filter.LOCKED;
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -110,16 +118,19 @@ public final class VaultScreen {
             emptyMessage.setText("No se pudieron cargar las cápsulas");
             return;
         }
-        long now = System.currentTimeMillis();
-        int openCount = 0;
+        int openedCount = 0;
+        int unlockedCount = 0;
         int upcomingCount = 0;
         int lockedCount = 0;
         List<Capsule> visibleCapsules = new ArrayList<>();
         for (Capsule capsule : allCapsules) {
-            Filter capsuleStatus = getCapsuleStatus(capsule, now);
+            Filter capsuleStatus = getCapsuleStatus(capsule);
             switch (capsuleStatus) {
                 case OPEN:
-                    openCount++;
+                    openedCount++;
+                    break;
+                case UNLOCKED:
+                    unlockedCount++;
                     break;
                 case UPCOMING:
                     upcomingCount++;
@@ -133,7 +144,8 @@ public final class VaultScreen {
             if (selectedFilter == Filter.ALL || selectedFilter == capsuleStatus) visibleCapsules.add(capsule);
         }
         allChip.setText("Todas (" + allCapsules.size() + ")");
-        openChip.setText("Abiertas (" + openCount + ")");
+        openChip.setText("Abiertas (" + openedCount + ")");
+        unlockedChip.setText("Desbloqueadas (" + unlockedCount + ")");
         upcomingChip.setText("Próximas (" + upcomingCount + ")");
         lockedChip.setText("Bloqueadas (" + lockedCount + ")");
         adapter.setCapsules(visibleCapsules);
@@ -144,6 +156,9 @@ public final class VaultScreen {
             switch (selectedFilter) {
                 case OPEN:
                     emptyMessage.setText("No tienes cápsulas abiertas.");
+                    break;
+                case UNLOCKED:
+                    emptyMessage.setText("No tienes cápsulas desbloqueadas.");
                     break;
                 case UPCOMING:
                     emptyMessage.setText("No tienes cápsulas próximas en los siguientes 7 días.");

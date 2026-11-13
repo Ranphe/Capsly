@@ -39,7 +39,7 @@
             android:layout_marginTop="4dp"
             android:contentDescription="@null"
             android:scaleType="fitCenter"
-            app:srcCompat="@drawable/screenpill_p" />
+            app:srcCompat="@drawable/screenpill_l" />
 
         <TextView
             android:layout_width="match_parent"
