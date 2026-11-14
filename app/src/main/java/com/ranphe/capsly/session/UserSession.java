@@ -15,6 +15,10 @@ public final class UserSession {
         return name;
     }
 
+    public void updateName(String name) {
+        if (isSignedIn()) this.name = name;
+    }
+
     public String getEmail() {
         return email;
     }

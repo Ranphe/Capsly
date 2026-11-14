@@ -34,39 +34,66 @@
             android:textColor="#46534A"
             android:textSize="16sp" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="108dp"
-            android:layout_height="108dp"
+        <FrameLayout
+            android:layout_width="132dp"
+            android:layout_height="124dp"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="24dp"
-            app:cardBackgroundColor="#E7F1EC"
-            app:cardCornerRadius="54dp"
-            app:cardElevation="0dp"
-            app:strokeColor="#7F9990"
-            app:strokeWidth="1dp">
+            android:layout_marginTop="24dp">
 
-            <ImageView
-                android:id="@+id/imgFotoPerfil"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription="Foto de perfil"
-                android:padding="18dp"
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="108dp"
+                android:layout_height="108dp"
+                android:layout_gravity="center"
+                app:cardBackgroundColor="#E7F1EC"
+                app:cardCornerRadius="54dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#7F9990"
+                app:strokeWidth="1dp">
+
+                <ImageView
+                    android:id="@+id/imgFotoPerfil"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Foto de perfil"
+                    android:padding="18dp"
+                    android:scaleType="fitCenter"
+                    app:srcCompat="@drawable/screenpfp" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <ImageButton
+                android:id="@+id/btnEditarNombrePerfil"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_gravity="bottom|end"
+                android:background="@drawable/bg_edit_nickname"
+                android:contentDescription="Editar nickname"
+                android:padding="9dp"
                 android:scaleType="fitCenter"
-                app:srcCompat="@drawable/screenpfp" />
+                android:src="@android:drawable/ic_menu_edit"
+                app:tint="#252F27" />
 
-        </com.google.android.material.card.MaterialCardView>
+        </FrameLayout>
 
-        <TextView
-            android:id="@+id/tvNombrePerfil"
+        <EditText
+            android:id="@+id/etNombrePerfil"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="2dp"
+            android:background="@android:color/transparent"
+            android:cursorVisible="false"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             android:fontFamily="@font/playfair_display_extrabold"
             android:gravity="center"
+            android:imeOptions="actionDone"
+            android:inputType="textCapWords|textNoSuggestions"
+            android:maxLength="20"
+            android:singleLine="true"
             android:text="Usuario"
             android:textColor="#252F27"
             android:textSize="26sp"
-            tools:text="Sofía García" />
+            tools:text="SofiaGarcia" />
 
         <TextView
             android:layout_width="match_parent"

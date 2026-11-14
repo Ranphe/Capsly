@@ -1,5 +1,6 @@
 package com.ranphe.capsly.ui.home;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,17 +10,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ranphe.capsly.R;
 import com.ranphe.capsly.ui.profile.ProfileScreen;
 import com.ranphe.capsly.ui.vault.VaultScreen;
+import java.util.function.Consumer;
 
 public final class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.PageHolder> {
     private final Activity activity;
-    private final String userName;
+    private String userName;
     private final String recipientEmail;
     private final Runnable onCreateCapsule;
     private final Runnable onOpenVault;
     private final Runnable onOpenProfile;
     private final Runnable onSignOut;
+    private final Consumer<String> onNameChanged;
 
-    public HomeAdapter(Activity activity, String userName, String recipientEmail, Runnable onCreateCapsule, Runnable onOpenVault, Runnable onOpenProfile, Runnable onSignOut) {
+    public HomeAdapter(Activity activity, String userName, String recipientEmail, Runnable onCreateCapsule, Runnable onOpenVault, Runnable onOpenProfile, Runnable onSignOut, Consumer<String> onNameChanged) {
         this.activity = activity;
         this.userName = userName;
         this.recipientEmail = recipientEmail;
@@ -27,6 +30,7 @@ public final class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.PageHold
         this.onOpenVault = onOpenVault;
         this.onOpenProfile = onOpenProfile;
         this.onSignOut = onSignOut;
+        this.onNameChanged = onNameChanged;
     }
 
     @Override
@@ -53,6 +57,7 @@ public final class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.PageHold
         return new PageHolder(view);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull PageHolder holder, int position) {
         releaseHolder(holder);
@@ -64,7 +69,11 @@ public final class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.PageHold
                 holder.vaultScreen = new VaultScreen(activity, holder.itemView, recipientEmail);
                 break;
             case 2:
-                ProfileScreen.bind(holder.itemView, userName, recipientEmail, onSignOut);
+                ProfileScreen.bind(holder.itemView, userName, recipientEmail, newName -> {
+                    userName = newName;
+                    onNameChanged.accept(newName);
+                    notifyItemChanged(0);
+                }, onSignOut);
                 break;
         }
     }

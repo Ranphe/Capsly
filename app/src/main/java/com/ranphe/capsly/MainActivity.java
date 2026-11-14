@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
         isOnAccessScreen = false;
         setContentView(R.layout.item_home_navigation);
         applyWindowInsets();
-        HomeScreen.bind(this, name, userSession.getEmail(), this::showCreateMemory, this::signOut);
+        HomeScreen.bind(this, name, userSession.getEmail(), this::showCreateMemory, this::signOut, userSession::updateName);
     }
 
     private void signOut() {

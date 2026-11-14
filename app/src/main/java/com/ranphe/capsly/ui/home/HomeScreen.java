@@ -4,18 +4,19 @@ import android.app.Activity;
 import android.view.View;
 import androidx.viewpager2.widget.ViewPager2;
 import com.ranphe.capsly.R;
+import java.util.function.Consumer;
 
 public final class HomeScreen {
     private HomeScreen() {}
 
-    public static void bind(Activity activity, String userName, String recipientEmail, Runnable onCreateCapsule, Runnable onSignOut) {
+    public static void bind(Activity activity, String userName, String recipientEmail, Runnable onCreateCapsule, Runnable onSignOut, Consumer<String> onNameChanged) {
         ViewPager2 pager = activity.findViewById(R.id.pagerPrincipal);
         View homeButton = activity.findViewById(R.id.navInicio);
         View createButton = activity.findViewById(R.id.navCrear);
         View vaultButton = activity.findViewById(R.id.navBoveda);
         Runnable onOpenVault = () -> pager.setCurrentItem(1, false);
         Runnable onOpenProfile = () -> pager.setCurrentItem(2, false);
-        pager.setAdapter(new HomeAdapter(activity, userName, recipientEmail, onCreateCapsule, onOpenVault, onOpenProfile, onSignOut));
+        pager.setAdapter(new HomeAdapter(activity, userName, recipientEmail, onCreateCapsule, onOpenVault, onOpenProfile, onSignOut, onNameChanged));
         pager.setUserInputEnabled(false);
         homeButton.setSelected(true);
         vaultButton.setSelected(false);

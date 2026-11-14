@@ -218,11 +218,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public boolean markCapsuleOpened(long capsuleId, String recipientEmail) {
-        if (recipientEmail == null || recipientEmail.trim().isEmpty()) return false;
+    public void markCapsuleOpened(long capsuleId, String recipientEmail) {
+        if (recipientEmail == null || recipientEmail.trim().isEmpty()) return;
         try (SQLiteDatabase database = getWritableDatabase()) {
             long recipientId = findUserIdByEmail(database, recipientEmail);
-            if (recipientId == -1L) return false;
+            if (recipientId == -1L) return;
             long now = System.currentTimeMillis();
             ContentValues values = new ContentValues();
             values.put(COLUMN_OPENED_AT, now);
@@ -235,7 +235,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     String.valueOf(recipientId),
                     String.valueOf(now)
             };
-            return database.update(TABLE_CAPSULES, values, selection, arguments) == 1;
+            database.update(TABLE_CAPSULES, values, selection, arguments);
+        }
+    }
+
+    public boolean updateUserName(String email, String name) {
+        if (email == null || name == null) return false;
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+        if (normalizedEmail.isEmpty() || name.length() < 2 || name.length() > 20 || name.matches(".*\\s.*")) return false;
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NAME, name);
+        try (SQLiteDatabase database = getWritableDatabase()) {
+            return database.update(TABLE_USERS, values, COLUMN_EMAIL + " = ?", new String[]{normalizedEmail}) == 1;
         }
     }
 }
