@@ -2,6 +2,7 @@
 
     <style name="Base.Theme.Capsly" parent="Theme.Material3.Light.NoActionBar">
         <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
+        <item name="android:textColorHighlight">#FFF8D2</item>
     </style>
 
     <style name="Theme.Capsly" parent="Base.Theme.Capsly" />

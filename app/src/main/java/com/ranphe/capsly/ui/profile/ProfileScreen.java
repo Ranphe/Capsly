@@ -122,7 +122,6 @@ public final class ProfileScreen {
             }).start();
         }
 
-
         private void finishEditing() {
             editing = false;
             nameInput.setError(null);

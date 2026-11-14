@@ -15,6 +15,8 @@ import android.widget.Toast;
 import android.widget.VideoView;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.graphics.Matrix;
+import androidx.exifinterface.media.ExifInterface;
 import com.ranphe.capsly.R;
 import java.util.Locale;
 import java.io.File;
@@ -73,15 +75,57 @@ public final class UnlockedMediaController {
             options.inSampleSize = sampleSize;
             options.inPreferredConfig = Bitmap.Config.RGB_565;
             Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+            Bitmap orientedBitmap = applyPhotoOrientation(bitmap, file);
             activity.runOnUiThread(() -> {
                 if (released || activity.isFinishing() || activity.isDestroyed()) return;
-                if (bitmap == null) {
+                if (orientedBitmap == null) {
                     Toast.makeText(activity, "No se pudo abrir la fotografía", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                image.setImageBitmap(bitmap);
+                image.setImageBitmap(orientedBitmap);
             });
         }).start();
+    }
+
+    private Bitmap applyPhotoOrientation(Bitmap bitmap, File file) {
+        if (bitmap == null) return null;
+        try {
+            ExifInterface exif = new ExifInterface(file.getAbsolutePath());
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            Matrix matrix = new Matrix();
+            switch (orientation) {
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    matrix.setRotate(90);
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    matrix.setRotate(180);
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    matrix.setRotate(270);
+                    break;
+                case ExifInterface.ORIENTATION_FLIP_HORIZONTAL:
+                    matrix.setScale(-1, 1);
+                    break;
+                case ExifInterface.ORIENTATION_FLIP_VERTICAL:
+                    matrix.setScale(1, -1);
+                    break;
+                case ExifInterface.ORIENTATION_TRANSPOSE:
+                    matrix.setRotate(90);
+                    matrix.postScale(-1, 1);
+                    break;
+                case ExifInterface.ORIENTATION_TRANSVERSE:
+                    matrix.setRotate(270);
+                    matrix.postScale(-1, 1);
+                    break;
+                default:
+                    return bitmap;
+            }
+            Bitmap correctedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+            if (correctedBitmap != bitmap) bitmap.recycle();
+            return correctedBitmap;
+        } catch (IOException exception) {
+            return bitmap;
+        }
     }
 
     @SuppressLint("SetTextI18n")

@@ -93,6 +93,7 @@
             android:text="Usuario"
             android:textColor="#252F27"
             android:textSize="26sp"
+            android:textColorHighlight="#FFF8D2"
             tools:text="SofiaGarcia" />
 
         <TextView
