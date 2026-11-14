@@ -10,6 +10,7 @@ import com.ranphe.capsly.media.audio.AudioController;
 import com.ranphe.capsly.media.photo.PhotoController;
 import com.ranphe.capsly.media.video.VideoController;
 import com.ranphe.capsly.session.UserSession;
+import java.util.function.BiConsumer;
 
 public final class CreateMemoryScreen {
     private final AppCompatActivity activity;
@@ -19,13 +20,13 @@ public final class CreateMemoryScreen {
     private final CreateMemoryController memoryController;
     private String selectedFormat = "";
 
-    public CreateMemoryScreen(AppCompatActivity activity, UserSession userSession, PhotoController photoController, VideoController videoController, AudioController audioController, Runnable onReturnHome) {
+    public CreateMemoryScreen(AppCompatActivity activity, UserSession userSession, PhotoController photoController, VideoController videoController, AudioController audioController, Runnable onReturnHome, BiConsumer<String, Long> onSaved) {
         this.activity = activity;
         this.photoController = photoController;
         this.videoController = videoController;
         this.audioController = audioController;
         CapsuleRepository repository = new CapsuleRepository(activity.getApplicationContext());
-        memoryController = new CreateMemoryController(activity, userSession, repository, onReturnHome);
+        memoryController = new CreateMemoryController(activity, userSession, repository, onSaved);
         bind(onReturnHome);
     }
 

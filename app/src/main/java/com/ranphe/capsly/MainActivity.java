@@ -29,11 +29,16 @@ import com.ranphe.capsly.ui.access.AccessAdapter;
 import com.ranphe.capsly.ui.create.CreateMemoryScreen;
 import com.ranphe.capsly.ui.home.HomeScreen;
 import com.ranphe.capsly.ui.welcome.WelcomeScreen;
+import android.widget.TextView;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_OPEN_VAULT = "com.ranphe.capsly.extra.OPEN_VAULT";
     private boolean isOnAccessScreen = false;
     private boolean isOnCreateMemoryScreen = false;
+    private boolean isOnCapsuleCreatedScreen = false;
     private final UserSession userSession = new UserSession();
     private PhotoController photoController;
     private VideoController videoController;
@@ -89,7 +94,9 @@ public class MainActivity extends AppCompatActivity {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (isOnCreateMemoryScreen) {
+                if (isOnCapsuleCreatedScreen) {
+                    showHome(userSession.getName());
+                } else if (isOnCreateMemoryScreen) {
                     showHome(userSession.getName());
                 } else if (isOnAccessScreen) {
                     showWelcome();
@@ -145,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
         createMemoryScreen = null;
         isOnCreateMemoryScreen = false;
         isOnAccessScreen = false;
+        isOnCapsuleCreatedScreen = false;
         setContentView(R.layout.item_home_navigation);
         applyWindowInsets();
         HomeScreen.bind(this, name, userSession.getEmail(), this::showCreateMemory, this::signOut, userSession::updateName);
@@ -161,10 +169,29 @@ public class MainActivity extends AppCompatActivity {
 
     private void showCreateMemory() {
         isOnCreateMemoryScreen = true;
+        isOnCapsuleCreatedScreen = false;
         isOnAccessScreen = false;
         setContentView(R.layout.page_create_memory);
         applyWindowInsets();
-        createMemoryScreen = new CreateMemoryScreen(this, userSession, photoController, videoController, audioController, () -> showHome(userSession.getName()));
+        createMemoryScreen = new CreateMemoryScreen(this, userSession, photoController, videoController, audioController, () -> showHome(userSession.getName()), this::showCapsuleCreated);
+    }
+
+    private void showCapsuleCreated(String recipientEmail, long openingDate) {
+        clearMediaSelections();
+        createMemoryScreen = null;
+        isOnCreateMemoryScreen = false;
+        isOnAccessScreen = false;
+        isOnCapsuleCreatedScreen = true;
+        setContentView(R.layout.screen_capsule_created);
+        applyWindowInsets();
+        TextView recipientView = findViewById(R.id.tvDestinatarioCapsulaLista);
+        TextView dateView = findViewById(R.id.tvFechaAperturaCapsulaLista);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("d 'de' MMMM 'de' yyyy", new Locale("es", "MX"));
+        recipientView.setText("Destinatario: " + recipientEmail);
+        dateView.setText("Apertura: " + dateFormat.format(new Date(openingDate)));
+        findViewById(R.id.btnRegresarCapsulaLista).setOnClickListener(view -> showHome(userSession.getName()));
+        findViewById(R.id.btnVolverInicioCapsulaLista).setOnClickListener(view -> showHome(userSession.getName()));
+        findViewById(R.id.btnCrearOtraCapsulaLista).setOnClickListener(view -> showCreateMemory());
     }
 
     private boolean isCreatingFormat(String format) {

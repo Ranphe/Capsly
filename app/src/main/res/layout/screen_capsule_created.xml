@@ -64,7 +64,7 @@
             android:layout_marginTop="10dp"
             android:gravity="center"
             android:lineSpacingExtra="3dp"
-            android:text="Tu recuerdo ha sido guardado y permanecerá protegido hasta la fecha de apertura."
+            android:text="Tu cápsula ha quedado guardada para su destinatario y permanecerá protegida hasta la fecha de apertura."
             android:textColor="#46534A"
             android:textSize="16sp"
             tools:text="Tu recuerdo ha sido guardado y permanecerá protegido hasta el 27 de septiembre de 2043." />
@@ -82,26 +82,102 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:padding="16dp">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="12dp"
-                    android:contentDescription="@null"
-                    android:scaleType="fitCenter"
-                    app:srcCompat="@android:drawable/ic_lock_lock"
-                    app:tint="#34665A" />
-
-                <TextView
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Solo tú podrás modificar tu recuerdo antes de la fecha de apertura."
-                    android:textColor="#252F27"
-                    android:textSize="14sp" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <FrameLayout
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="10dp">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_capsule_mail" />
+
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/tvDestinatarioCapsulaLista"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Destinatario: correo@example.com"
+                        android:textColor="#252F27"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <FrameLayout
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="10dp">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_capsule_calendar" />
+
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/tvFechaAperturaCapsulaLista"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Apertura: 27 de septiembre de 2043"
+                        android:textColor="#252F27"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <FrameLayout
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="10dp">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_capsule_lock" />
+
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tu cápsula está sellada y no podrá modificarse."
+                        android:textColor="#252F27"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
@@ -113,7 +189,7 @@
             android:layout_weight="1" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnVerEnBoveda"
+            android:id="@+id/btnVolverInicioCapsulaLista"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:elevation="0dp"
@@ -122,7 +198,7 @@
             android:insetBottom="0dp"
             android:minHeight="54dp"
             android:stateListAnimator="@null"
-            android:text="Ver en Bóveda"
+            android:text="Volver al inicio"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
@@ -130,7 +206,7 @@
             app:cornerRadius="27dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnRegresarInicio"
+            android:id="@+id/btnCrearOtraCapsulaLista"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
@@ -140,7 +216,7 @@
             android:insetBottom="0dp"
             android:minHeight="54dp"
             android:stateListAnimator="@null"
-            android:text="Regresar a Inicio"
+            android:text="Crear otra cápsula"
             android:textAllCaps="false"
             android:textColor="#34665A"
             android:textSize="16sp"

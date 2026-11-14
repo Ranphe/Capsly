@@ -11,16 +11,17 @@ import com.ranphe.capsly.data.repository.CapsuleRepository;
 import com.ranphe.capsly.session.UserSession;
 import com.ranphe.capsly.config.DebugConfig;
 import java.util.Calendar;
+import java.util.function.BiConsumer;
 
 public final class CreateMemoryController {
     private final AppCompatActivity activity;
     private final UserSession userSession;
     private final CapsuleRepository repository;
-    private final Runnable onSaved;
+    private final BiConsumer<String, Long> onSaved;
     private long openingDate = -1;
     private boolean saving = false;
 
-    public CreateMemoryController(AppCompatActivity activity, UserSession userSession, CapsuleRepository repository, Runnable onSaved) {
+    public CreateMemoryController(AppCompatActivity activity, UserSession userSession, CapsuleRepository repository, BiConsumer<String, Long> onSaved) {
         this.activity = activity;
         this.userSession = userSession;
         this.repository = repository;
@@ -95,8 +96,7 @@ public final class CreateMemoryController {
                 if (activity.isFinishing() || activity.isDestroyed()) return;
                 if (result == CapsuleRepository.SaveResult.SUCCESS) {
                     saving = false;
-                    Toast.makeText(activity, "¡Cápsula guardada correctamente!", Toast.LENGTH_LONG).show();
-                    onSaved.run();
+                    onSaved.accept(recipientEmail, selectedOpeningDate);
                     return;
                 }
                 setSaving(false);
