@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.ranphe.capsly.security.PasswordSecurity;
 import com.ranphe.capsly.data.model.Capsule;
 import com.ranphe.capsly.data.model.UnlockedCapsule;
+import com.ranphe.capsly.data.model.Quote;
 import java.security.GeneralSecurityException;
 import java.util.Locale;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "capsly.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 4;
     public static final String TABLE_USERS = "usuarios";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_NAME = "nombre";
@@ -33,6 +34,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_OPEN_DATE = "fecha_apertura";
     public static final String COLUMN_CREATED_AT = "fecha_creacion";
     public static final String COLUMN_OPENED_AT = "fecha_primera_apertura";
+    public static final String TABLE_QUOTES = "frases_guardadas";
+    public static final String COLUMN_USER_ID = "usuario_id";
+    public static final String COLUMN_QUOTE = "frase";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -54,6 +58,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_PASSWORD_SALT + " TEXT NOT NULL)";
         database.execSQL(createUsersSql);
         createCapsulesTable(database);
+        createQuotesTable(database);
     }
 
     private void createCapsulesTable(SQLiteDatabase database) {
@@ -74,9 +79,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         database.execSQL("CREATE INDEX IF NOT EXISTS idx_capsulas_destinatario ON " + TABLE_CAPSULES + "(" + COLUMN_RECIPIENT_ID + ")");
     }
 
+    private void createQuotesTable(SQLiteDatabase database) {
+        String sql = "CREATE TABLE IF NOT EXISTS " + TABLE_QUOTES + " (" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_USER_ID + " INTEGER NOT NULL, " +
+                COLUMN_QUOTE + " TEXT NOT NULL, " +
+                COLUMN_CREATED_AT + " INTEGER NOT NULL, " +
+                "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " +
+                TABLE_USERS + "(" + COLUMN_ID + ") ON DELETE RESTRICT)";
+        database.execSQL(sql);
+        database.execSQL("CREATE INDEX IF NOT EXISTS idx_frases_usuario ON " + TABLE_QUOTES + "(" + COLUMN_USER_ID + ")");
+    }
+
+    // Las bases de datos antiguas pueden tener versiones iguales con esquemas distintos.
+    // Se comprueba la columna antes de agregarla para conservar los datos existentes.
+    private boolean hasColumn(SQLiteDatabase database, String table, String column) {
+        try (Cursor cursor = database.rawQuery("PRAGMA table_info(" + table + ")", null)) {
+            int nameIndex = cursor.getColumnIndexOrThrow("name");
+            while (cursor.moveToNext()) {
+                if (column.equals(cursor.getString(nameIndex))) return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
-        throw new IllegalStateException("Database migration is not implemented");
+        if (newVersion > DATABASE_VERSION) {
+            throw new IllegalStateException("Database migration is not implemented");
+        }
+        if (oldVersion < 4) {
+            createCapsulesTable(database);
+            if (!hasColumn(database, TABLE_CAPSULES, COLUMN_OPENED_AT)) {
+                database.execSQL("ALTER TABLE " + TABLE_CAPSULES +
+                        " ADD COLUMN " + COLUMN_OPENED_AT + " INTEGER");
+            }
+            createQuotesTable(database);
+        }
     }
 
     public boolean registerUser(String name, String email, String password) throws GeneralSecurityException {
@@ -248,5 +287,67 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         try (SQLiteDatabase database = getWritableDatabase()) {
             return database.update(TABLE_USERS, values, COLUMN_EMAIL + " = ?", new String[]{normalizedEmail}) == 1;
         }
+    }
+
+    public long saveQuote(String email, String quote) {
+        SQLiteDatabase database = getWritableDatabase();
+        long userId = findUserIdByEmail(database, email);
+        if (userId == -1 || quote == null || quote.trim().isEmpty()) {return -1;}
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USER_ID, userId);
+        values.put(COLUMN_QUOTE, quote.trim());
+        values.put(COLUMN_CREATED_AT, System.currentTimeMillis());
+        return database.insertOrThrow(TABLE_QUOTES, null, values);
+    }
+
+    public List<Quote> getSavedQuotes(String email) {
+        List<Quote> quotes = new ArrayList<>();
+        SQLiteDatabase database = getReadableDatabase();
+        long userId = findUserIdByEmail(database, email);
+        if (userId == -1) {throw new IllegalStateException("Usuario no encontrado");}
+        try (Cursor cursor = database.query(
+                TABLE_QUOTES,
+                new String[]{COLUMN_ID, COLUMN_QUOTE},
+                COLUMN_USER_ID + " = ?",
+                new String[]{String.valueOf(userId)},
+                null,
+                null,
+                COLUMN_CREATED_AT + " DESC, " + COLUMN_ID + " DESC"
+        )) {
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_ID));
+                String text = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_QUOTE));
+                quotes.add(new Quote(id, text));
+            }
+        }
+        return quotes;
+    }
+
+    public boolean updateQuote(long quoteId, String email, String newText) {
+        SQLiteDatabase database = getWritableDatabase();
+        long userId = findUserIdByEmail(database, email);
+        if (userId == -1 || newText == null || newText.trim().isEmpty()) {return false;}
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_QUOTE, newText.trim());
+        int updated = database.update(TABLE_QUOTES, values, COLUMN_ID + " = ? AND " + COLUMN_USER_ID + " = ?",
+                new String[]{
+                        String.valueOf(quoteId),
+                        String.valueOf(userId)
+                }
+        );
+        return updated > 0;
+    }
+
+    public boolean deleteQuote(long quoteId, String email) {
+        SQLiteDatabase database = getWritableDatabase();
+        long userId = findUserIdByEmail(database, email);
+        if (userId == -1) {return false;}
+        int deleted = database.delete(TABLE_QUOTES, COLUMN_ID + " = ? AND " + COLUMN_USER_ID + " = ?",
+                new String[]{
+                        String.valueOf(quoteId),
+                        String.valueOf(userId)
+                }
+        );
+        return deleted > 0;
     }
 }

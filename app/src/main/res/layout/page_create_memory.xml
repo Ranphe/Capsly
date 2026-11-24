@@ -498,6 +498,28 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnInspiracion"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/lora_bold"
+            android:elevation="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="Inspiración"
+            android:textAllCaps="false"
+            android:textColor="#34665A"
+            android:textSize="14sp"
+            app:backgroundTint="#E7F1EC"
+            app:cornerRadius="22dp"
+            app:strokeColor="#7F9990"
+            app:strokeWidth="1dp" />
+
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -28,6 +28,7 @@ import com.ranphe.capsly.session.UserSession;
 import com.ranphe.capsly.ui.access.AccessAdapter;
 import com.ranphe.capsly.ui.create.CreateMemoryScreen;
 import com.ranphe.capsly.ui.home.HomeScreen;
+import com.ranphe.capsly.ui.inspiration.InspirationActivity;
 import com.ranphe.capsly.ui.welcome.WelcomeScreen;
 import android.widget.TextView;
 import java.text.SimpleDateFormat;
@@ -174,6 +175,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.page_create_memory);
         applyWindowInsets();
         createMemoryScreen = new CreateMemoryScreen(this, userSession, photoController, videoController, audioController, () -> showHome(userSession.getName()), this::showCapsuleCreated);
+        findViewById(R.id.btnInspiracion).setOnClickListener(view -> showInspiration());
+    }
+
+    private void showInspiration() {
+        if (createMemoryScreen == null || createMemoryScreen.isSaving()) {
+            return;
+        }
+
+        Intent intent = new Intent(this, InspirationActivity.class);
+        intent.putExtra(InspirationActivity.EXTRA_USER_EMAIL, userSession.getEmail());
+        startActivity(intent);
     }
 
     private void showCapsuleCreated(String recipientEmail, long openingDate) {

@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="false"
@@ -46,6 +47,12 @@
         <activity
             android:name=".ui.vault.UnlockedCapsuleActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".ui.inspiration.InspirationActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
     </application>
 
 </manifest>
